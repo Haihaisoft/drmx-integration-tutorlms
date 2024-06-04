@@ -9,12 +9,12 @@ $flag	= 0;
 //$PIDs	= explode('-', $_SESSION['ProductID']);
 
 // Get integration parameters
-define( 'DRMX_ACCOUNT', 	get_option('drmx_account'));
+define( 'DRMX_ACCOUNT', 		get_option('drmx_account'));
 define( 'DRMX_AUTHENTICATION', 	get_option('drmx_authentication'));
-define( 'DRMX_GROUPID', 	get_option('drmx_groupid'));
-define( 'DRMX_RIGHTSID', 	get_option('drmx_rightsid'));
-define( 'WSDL', 		get_option('drmx_wsdl'));
-define( 'DRMX_BINDING', 	get_option('drmx_binding'));
+define( 'DRMX_GROUPID', 		get_option('drmx_groupid'));
+define( 'DRMX_RIGHTSID', 		get_option('drmx_rightsid'));
+define( 'WSDL', 				get_option('drmx_wsdl'));
+define( 'DRMX_BINDING', 		get_option('drmx_binding'));
 
 $client = new SoapClient(WSDL, array('trace' => false));
 
@@ -26,7 +26,7 @@ if($_POST){
 	$user_pass 	= $user->user_pass;
 	$userEmail	= $user->user_email;
 	if (!wp_check_password($pwd, $user_pass)) {
-		echo "<SCRIPT language=JavaScript>location='drmx_LicError.php?message=¡Su cuenta o contraseña es incorrecta!<br><br>Por favor, vuelva a visitar el curso.<br>&error=null'</SCRIPT>";
+		echo "<SCRIPT language=JavaScript>location='drmx_LicError.php?message=Your Account or Password is incorrect! <br><br>Please revisit the course!&error=null'</SCRIPT>";
 		exit;
 	}
 }else{
@@ -53,46 +53,46 @@ $result = $wpdb->get_results("SELECT ID FROM ".$table_prefix."posts WHERE post_a
 if (count($result) > 0) {
     foreach ($result as $row) {
         if($row->ID != NULL){
-		// If the username is not exists, call 'AddNewUser' to add user.
-		if(checkUserExists($client, $username) == "False"){
-			$addNewUserResult = addNewUser($client, $username, $userEmail);
-			$info = $addNewUserResult;
-			$flag = 1;
-		}
-		// check user is revoked
-		/*if(checkUserIsRevoked($client, $username)){
-			$errorInfo = 'Username: '.$username.' is revoked.';
-			header("location:drmx_LicError.php?error=".$errorInfo."&message=".$message);
-			exit;
-		}*/
-	
-		/*** Automatically update license permissions for users based on duration of the course ****/
-		$updateRightResult = updateRight($client, $rights_duration, $userEmail);
-	
-		if($updateRightResult == '1'){
-			
-			/*****After the License Rights is updated, perform the method of obtaining the license****/
-			$licenseResult = getLicense($client, $username);
-			$license = $licenseResult->getLicenseRemoteToTableWithVersionWithMacResult;
-			$message = $licenseResult->Message;
-	
-			if(stripos($license, '<div id="License_table_DRM-x4" style="display:none;">' )  === false ){
-				header('location: drmx_LicError.php?error='.$license.'&message='.$message);
-				exit;
+			// If the username is not exists, call 'AddNewUser' to add user.
+			if(checkUserExists($client, $username) == "False"){
+				$addNewUserResult = addNewUser($client, $username, $userEmail);
+				$info = $addNewUserResult;
+				$flag = 1;
 			}
-			/*****After obtaining the license, store the license and message through the session, and then direct to the licstore page******/
-			$_SESSION['license'] = $license;
-			$_SESSION['message'] = $message;
-			
-			header('location: licstore.php');
-			$flag = 1;
-			$info = "Getting license...";
-			exit;
-		}else{
-			$info = $updateRightResult;
-			$flag = 1;
+			// check user is revoked
+			/*if(checkUserIsRevoked($client, $username)){
+				$errorInfo = 'Username: '.$username.' is revoked.';
+				header("location:drmx_LicError.php?error=".$errorInfo."&message=".$message);
+				exit;
+			}*/
+		
+			/*** Automatically update license permissions for users based on duration of the course ****/
+			$updateRightResult = updateRight($client, $rights_duration, $userEmail);
+		
+			if($updateRightResult == '1'){
+				
+				/*****After the License Rights is updated, perform the method of obtaining the license****/
+				$licenseResult = getLicense($client, $username);
+				$license = $licenseResult->getLicenseRemoteToTableWithVersionWithMacResult;
+				$message = $licenseResult->Message;
+		
+				if(stripos($license, '<div id="License_table_DRM-x4" style="display:none;">' )  === false ){
+					header('location: drmx_LicError.php?error='.$license.'&message='.$message);
+					exit;
+				}
+				/*****After obtaining the license, store the license and message through the session, and then direct to the licstore page******/
+				$_SESSION['license'] = $license;
+				$_SESSION['message'] = $message;
+				
+				header('location: licstore.php');
+				$flag = 1;
+				$info = "Getting license...";
+				exit;
+			}else{
+				$info = $updateRightResult;
+				$flag = 1;
+			}
 		}
-	}
     } 
 }
 
